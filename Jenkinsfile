@@ -47,8 +47,16 @@ pipeline {
                         -p 3306:3306 \
                         mysql:8.4 --default-authentication-plugin=mysql_native_password
 
-                    for i in $(seq 1 30); do
-                        docker exec hotel-project-mysql mysqladmin ping -uroot -p${DB_PASSWORD} --silent && break
+                    for i in $(seq 1 60); do
+                        if docker inspect -f '{{.State.Running}}' hotel-project-mysql 2>/dev/null | grep -q true; then
+                            if docker exec hotel-project-mysql mysqladmin ping -uroot -p${DB_PASSWORD} --silent >/dev/null 2>&1; then
+                                break
+                            fi
+                        else
+                            echo "MySQL container exited unexpectedly. Logs:" >&2
+                            docker logs hotel-project-mysql 2>&1 || true
+                            exit 1
+                        fi
                         sleep 2
                     done
                 '''
@@ -59,8 +67,13 @@ pipeline {
             steps {
                 sh '''
                     set -e
+                    BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
+                    rm -rf "$BUILD_DIR"
+                    mkdir -p "$BUILD_DIR"
+                    tar -C "$PWD" -cf - . | tar -C "$BUILD_DIR" -xf -
+                    cd "$BUILD_DIR"
                     cp -n .env.example .env || true
-                    docker run --rm -v "$PWD":/app -w /app --network hotel-net \
+                    docker run --rm -v "$BUILD_DIR":/app -w /app --network hotel-net \
                         -e APP_ENV=${APP_ENV} -e APP_DEBUG=${APP_DEBUG} \
                         -e DB_CONNECTION=${DB_CONNECTION} -e DB_HOST=${DB_HOST} -e DB_PORT=${DB_PORT} \
                         -e DB_DATABASE=${DB_DATABASE} -e DB_USERNAME=${DB_USERNAME} -e DB_PASSWORD=${DB_PASSWORD} \
@@ -72,7 +85,11 @@ pipeline {
         stage('Install frontend dependencies') {
             steps {
                 sh '''
-                    docker run --rm -v "$PWD":/app -w /app node:22-alpine sh -c "if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi; npm run build"
+                    BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
+                    rm -rf "$BUILD_DIR"
+                    mkdir -p "$BUILD_DIR"
+                    tar -C "$PWD" -cf - . | tar -C "$BUILD_DIR" -xf -
+                    docker run --rm -v "$BUILD_DIR":/app -w /app node:22-alpine sh -c "if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi; npm run build"
                 '''
             }
         }
@@ -81,8 +98,12 @@ pipeline {
             steps {
                 sh '''
                     set -e
-                    mkdir -p build
-                    docker run --rm -v "$PWD":/app -w /app --network hotel-net \
+                    BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
+                    rm -rf "$BUILD_DIR"
+                    mkdir -p "$BUILD_DIR"
+                    tar -C "$PWD" -cf - . | tar -C "$BUILD_DIR" -xf -
+                    mkdir -p "$BUILD_DIR/build"
+                    docker run --rm -v "$BUILD_DIR":/app -w /app --network hotel-net \
                         -e APP_ENV=${APP_ENV} -e APP_DEBUG=${APP_DEBUG} \
                         -e DB_CONNECTION=${DB_CONNECTION} -e DB_HOST=${DB_HOST} -e DB_PORT=${DB_PORT} \
                         -e DB_DATABASE=${DB_DATABASE} -e DB_USERNAME=${DB_USERNAME} -e DB_PASSWORD=${DB_PASSWORD} \
@@ -97,7 +118,11 @@ pipeline {
             }
             steps {
                 sh '''
-                    docker build -t hotel-project:${GIT_COMMIT::7} .
+                    BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
+                    rm -rf "$BUILD_DIR"
+                    mkdir -p "$BUILD_DIR"
+                    tar -C "$PWD" -cf - . | tar -C "$BUILD_DIR" -xf -
+                    docker build -t hotel-project:${GIT_COMMIT::7} "$BUILD_DIR"
                 '''
             }
         }
