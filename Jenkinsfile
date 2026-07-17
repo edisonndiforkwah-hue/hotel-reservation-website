@@ -93,6 +93,8 @@ pipeline {
         stage('Run tests') {
             steps {
                 sh '''
+                    set -e
+                    mkdir -p build
                     php artisan config:clear
                     php artisan test --log-junit build/phpunit.junit.xml
                 '''
