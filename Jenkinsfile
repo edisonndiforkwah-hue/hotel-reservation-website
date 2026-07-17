@@ -70,7 +70,7 @@ pipeline {
                     BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
                     rm -rf "$BUILD_DIR"
                     mkdir -p "$BUILD_DIR"
-                    tar -C "$PWD" -cf - . | tar -C "$BUILD_DIR" -xf -
+                    git archive --format=tar HEAD | tar -x -C "$BUILD_DIR"
                     cd "$BUILD_DIR"
                     cp -n .env.example .env || true
                     docker run --rm -v "$BUILD_DIR":/app -w /app --network hotel-net \
@@ -88,7 +88,7 @@ pipeline {
                     BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
                     rm -rf "$BUILD_DIR"
                     mkdir -p "$BUILD_DIR"
-                    tar -C "$PWD" -cf - . | tar -C "$BUILD_DIR" -xf -
+                    git archive --format=tar HEAD | tar -x -C "$BUILD_DIR"
                     docker run --rm -v "$BUILD_DIR":/app -w /app node:22-alpine sh -c "if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi; npm run build"
                 '''
             }
@@ -101,7 +101,7 @@ pipeline {
                     BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
                     rm -rf "$BUILD_DIR"
                     mkdir -p "$BUILD_DIR"
-                    tar -C "$PWD" -cf - . | tar -C "$BUILD_DIR" -xf -
+                    git archive --format=tar HEAD | tar -x -C "$BUILD_DIR"
                     mkdir -p "$BUILD_DIR/build"
                     docker run --rm -v "$BUILD_DIR":/app -w /app --network hotel-net \
                         -e APP_ENV=${APP_ENV} -e APP_DEBUG=${APP_DEBUG} \
@@ -121,7 +121,7 @@ pipeline {
                     BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
                     rm -rf "$BUILD_DIR"
                     mkdir -p "$BUILD_DIR"
-                    tar -C "$PWD" -cf - . | tar -C "$BUILD_DIR" -xf -
+                    git archive --format=tar HEAD | tar -x -C "$BUILD_DIR"
                     docker build -t hotel-project:${GIT_COMMIT::7} "$BUILD_DIR"
                 '''
             }
