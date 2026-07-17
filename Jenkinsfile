@@ -45,7 +45,7 @@ pipeline {
                         -e MYSQL_ROOT_PASSWORD=${DB_PASSWORD} \
                         -e MYSQL_DATABASE=${DB_DATABASE} \
                         -p 3306:3306 \
-                        mysql:8.4 --default-authentication-plugin=mysql_native_password
+                        mysql:8.4
 
                     for i in $(seq 1 60); do
                         if docker inspect -f '{{.State.Running}}' hotel-project-mysql 2>/dev/null | grep -q true; then
