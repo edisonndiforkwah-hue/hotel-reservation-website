@@ -67,13 +67,9 @@ pipeline {
             steps {
                 sh '''
                     set -e
-                    BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
-                    rm -rf "$BUILD_DIR"
-                    mkdir -p "$BUILD_DIR"
-                    git archive --format=tar HEAD | tar -x -C "$BUILD_DIR"
-                    cd "$BUILD_DIR"
+                    cd "$WORKSPACE"
                     cp -n .env.example .env || true
-                    docker run --rm -v "$BUILD_DIR":/app -w /app --network hotel-net \
+                    docker run --rm -v "$WORKSPACE":/app -w /app --network hotel-net \
                         -e APP_ENV=${APP_ENV} -e APP_DEBUG=${APP_DEBUG} \
                         -e DB_CONNECTION=${DB_CONNECTION} -e DB_HOST=${DB_HOST} -e DB_PORT=${DB_PORT} \
                         -e DB_DATABASE=${DB_DATABASE} -e DB_USERNAME=${DB_USERNAME} -e DB_PASSWORD=${DB_PASSWORD} \
@@ -85,11 +81,7 @@ pipeline {
         stage('Install frontend dependencies') {
             steps {
                 sh '''
-                    BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
-                    rm -rf "$BUILD_DIR"
-                    mkdir -p "$BUILD_DIR"
-                    git archive --format=tar HEAD | tar -x -C "$BUILD_DIR"
-                    docker run --rm -v "$BUILD_DIR":/app -w /app node:22-alpine sh -c "if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi; npm run build"
+                    docker run --rm -v "$WORKSPACE":/app -w /app node:22-alpine sh -c "if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi; npm run build"
                 '''
             }
         }
@@ -98,12 +90,8 @@ pipeline {
             steps {
                 sh '''
                     set -e
-                    BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
-                    rm -rf "$BUILD_DIR"
-                    mkdir -p "$BUILD_DIR"
-                    git archive --format=tar HEAD | tar -x -C "$BUILD_DIR"
-                    mkdir -p "$BUILD_DIR/build"
-                    docker run --rm -v "$BUILD_DIR":/app -w /app --network hotel-net \
+                    mkdir -p "$WORKSPACE/build"
+                    docker run --rm -v "$WORKSPACE":/app -w /app --network hotel-net \
                         -e APP_ENV=${APP_ENV} -e APP_DEBUG=${APP_DEBUG} \
                         -e DB_CONNECTION=${DB_CONNECTION} -e DB_HOST=${DB_HOST} -e DB_PORT=${DB_PORT} \
                         -e DB_DATABASE=${DB_DATABASE} -e DB_USERNAME=${DB_USERNAME} -e DB_PASSWORD=${DB_PASSWORD} \
@@ -118,11 +106,7 @@ pipeline {
             }
             steps {
                 sh '''
-                    BUILD_DIR="/tmp/hotel-website-build-${BUILD_TAG:-local}"
-                    rm -rf "$BUILD_DIR"
-                    mkdir -p "$BUILD_DIR"
-                    git archive --format=tar HEAD | tar -x -C "$BUILD_DIR"
-                    docker build -t hotel-project:${GIT_COMMIT::7} "$BUILD_DIR"
+                    docker build -t hotel-project:${GIT_COMMIT::7} "$WORKSPACE"
                 '''
             }
         }
