@@ -51,3 +51,27 @@ This will start:
 ## Jenkins CI
 
 A Jenkins pipeline is included in [Jenkinsfile](Jenkinsfile). It installs dependencies, runs tests, and builds the Docker image on the main branch.
+
+### Jenkins agent setup
+
+For this pipeline to run successfully, the Jenkins agent needs:
+
+- Docker installed and running
+- Git installed
+- access to the Docker daemon
+- the following Jenkins plugins: Git, Pipeline, and Docker Pipeline (optional but recommended)
+
+On a Linux agent, give the Jenkins user access to Docker with:
+
+```bash
+sudo usermod -aG docker jenkins
+sudo systemctl restart docker
+sudo systemctl restart jenkins
+```
+
+After that, verify the agent can run Docker commands:
+
+```bash
+sudo -u jenkins docker --version
+sudo -u jenkins docker info
+```
