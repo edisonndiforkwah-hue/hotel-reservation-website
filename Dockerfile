@@ -6,7 +6,7 @@ FROM node:22-alpine AS frontend
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --no-audit --no-fund
 
 COPY vite.config.js postcss.config.js* tailwind.config.js* ./
 COPY resources ./resources
@@ -38,6 +38,9 @@ RUN composer dump-autoload --optimize --no-dev
 FROM php:8.2-fpm-bookworm
 
 LABEL maintainer="hotel-project"
+ARG APP_ENV=production
+ENV APP_ENV=${APP_ENV} \
+    APP_DEBUG=false
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
@@ -45,6 +48,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     unzip \
+    default-mysql-client \
     libpng-dev \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
@@ -78,8 +82,8 @@ COPY . .
 
 RUN mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \
     public/room_img public/gallery public/blog_img \
-    && chown -R www-data:www-data storage bootstrap/cache public/room_img public/gallery public/blog_img \
-    && chmod -R 775 storage bootstrap/cache
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 storage bootstrap/cache public/room_img public/gallery public/blog_img
 
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
