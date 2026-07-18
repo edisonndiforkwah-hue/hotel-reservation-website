@@ -63,6 +63,17 @@ pipeline {
             }
         }
 
+        stage('Clean workspace and Docker state') {
+            steps {
+                sh '''
+                    set -e
+                    docker system prune -af --volumes >/dev/null 2>&1 || true
+                    rm -rf "$WORKSPACE/vendor" "$WORKSPACE/node_modules" "$WORKSPACE/public/build" "$WORKSPACE/storage/framework" "$WORKSPACE/storage/logs" "$WORKSPACE/bootstrap/cache" 2>/dev/null || true
+                    mkdir -p "$WORKSPACE/storage/logs" "$WORKSPACE/bootstrap/cache"
+                '''
+            }
+        }
+
         stage('Install PHP dependencies') {
             steps {
                 sh '''
