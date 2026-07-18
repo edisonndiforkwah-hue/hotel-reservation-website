@@ -73,7 +73,7 @@ pipeline {
                         -e APP_ENV=${APP_ENV} -e APP_DEBUG=${APP_DEBUG} \
                         -e DB_CONNECTION=${DB_CONNECTION} -e DB_HOST=${DB_HOST} -e DB_PORT=${DB_PORT} \
                         -e DB_DATABASE=${DB_DATABASE} -e DB_USERNAME=${DB_USERNAME} -e DB_PASSWORD=${DB_PASSWORD} \
-                        composer:2 sh -c "git config --global --add safe.directory /app; composer install --prefer-dist --no-progress --no-interaction; php artisan key:generate --force || true; sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=${DB_CONNECTION}|' .env; sed -i 's|^DB_HOST=.*|DB_HOST=${DB_HOST}|' .env; sed -i 's|^DB_PORT=.*|DB_PORT=${DB_PORT}|' .env; sed -i 's|^DB_DATABASE=.*|DB_DATABASE=${DB_DATABASE}|' .env; sed -i 's|^DB_USERNAME=.*|DB_USERNAME=${DB_USERNAME}|' .env; sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=${DB_PASSWORD}|' .env; php artisan migrate --force"
+                        php:8.2-cli-bookworm sh -c "apt-get update && apt-get install -y --no-install-recommends curl git unzip libzip-dev libonig-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libxml2-dev default-mysql-client && docker-php-ext-configure gd --with-freetype --with-jpeg && docker-php-ext-install -j$(nproc) pdo_mysql mbstring exif pcntl bcmath gd zip opcache && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && git config --global --add safe.directory /app && composer install --prefer-dist --no-progress --no-interaction && php artisan key:generate --force || true && sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=${DB_CONNECTION}|' .env && sed -i 's|^DB_HOST=.*|DB_HOST=${DB_HOST}|' .env && sed -i 's|^DB_PORT=.*|DB_PORT=${DB_PORT}|' .env && sed -i 's|^DB_DATABASE=.*|DB_DATABASE=${DB_DATABASE}|' .env && sed -i 's|^DB_USERNAME=.*|DB_USERNAME=${DB_USERNAME}|' .env && sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=${DB_PASSWORD}|' .env && php artisan migrate --force"
                 '''
             }
         }
@@ -95,7 +95,7 @@ pipeline {
                         -e APP_ENV=${APP_ENV} -e APP_DEBUG=${APP_DEBUG} \
                         -e DB_CONNECTION=${DB_CONNECTION} -e DB_HOST=${DB_HOST} -e DB_PORT=${DB_PORT} \
                         -e DB_DATABASE=${DB_DATABASE} -e DB_USERNAME=${DB_USERNAME} -e DB_PASSWORD=${DB_PASSWORD} \
-                        composer:2 sh -c "git config --global --add safe.directory /app; php artisan config:clear; php artisan test --log-junit build/phpunit.junit.xml"
+                        php:8.2-cli-bookworm sh -c "apt-get update && apt-get install -y --no-install-recommends curl git unzip libzip-dev libonig-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libxml2-dev default-mysql-client && docker-php-ext-configure gd --with-freetype --with-jpeg && docker-php-ext-install -j$(nproc) pdo_mysql mbstring exif pcntl bcmath gd zip opcache && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && git config --global --add safe.directory /app && php artisan config:clear && php artisan test --log-junit build/phpunit.junit.xml"
                 '''
             }
         }
