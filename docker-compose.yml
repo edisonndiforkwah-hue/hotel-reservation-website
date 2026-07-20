@@ -1,3 +1,5 @@
+version: "2.4"
+
 services:
 
   # ---------------------------------------------------------------------------
@@ -159,8 +161,8 @@ services:
       MYSQL_USER: "${DB_USERNAME:-hotel_user}"
 
       MYSQL_PASSWORD: "${DB_PASSWORD:-hotel_secret}"
-
-    command: --default-authentication-plugin=mysql_native_password
+    # Removed unsupported option for MySQL 8.4:
+    # command: --default-authentication-plugin=mysql_native_password
 
     volumes:
 
@@ -168,7 +170,7 @@ services:
 
     ports:
 
-      - "${MYSQL_PORT:-3306}:3306"
+      - "${MYSQL_PORT:-3307}:3306"
 
     healthcheck:
 
