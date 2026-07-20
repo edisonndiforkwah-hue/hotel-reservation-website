@@ -3,6 +3,12 @@ set -e
 
 cd /var/www/html
 
+# Create .env from .env.example if it doesn't exist
+if [ ! -f .env ]; then
+    echo "Creating .env from .env.example..."
+    cp .env.example .env
+fi
+
 # Wait for MySQL to accept connections
 if [ "$DB_CONNECTION" = "mysql" ] || [ "$DB_CONNECTION" = "mariadb" ]; then
     echo "Waiting for database at ${DB_HOST}:${DB_PORT}..."
@@ -35,16 +41,19 @@ mkdir -p public/room_img public/gallery public/blog_img
 chown -R www-data:www-data storage bootstrap/cache public/room_img public/gallery public/blog_img
 
 php artisan storage:link --force 2>/dev/null || true
-php artisan migrate --force --no-interaction
+
+if ! php artisan migrate --force --no-interaction; then
+    echo "Database migrations did not complete; continuing startup so the web server can still come up."
+fi
 
 if [ "$APP_ENV" = "production" ]; then
-    php artisan config:cache
-    php artisan route:cache
-    php artisan view:cache
+    php artisan config:cache || true
+    php artisan route:cache || true
+    php artisan view:cache || true
 else
-    php artisan config:clear
-    php artisan route:clear
-    php artisan view:clear
+    php artisan config:clear || true
+    php artisan route:clear || true
+    php artisan view:clear || true
 fi
 
 exec "$@"

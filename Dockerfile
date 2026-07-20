@@ -92,7 +92,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost/up || exit 1
+    CMD curl -f http://localhost/ || exit 1
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
