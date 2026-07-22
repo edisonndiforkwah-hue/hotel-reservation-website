@@ -8,13 +8,31 @@
                </div>
             </div>
             <div class="row">
-               @foreach($gallery as $gallery)
-               <div class="col-md-3 col-sm-6">
-                  <div class="gallery_img">
-                     <figure><img src="gallery/{{ $gallery->image }}" alt="#"/></figure>
+               @if($gallery->isNotEmpty())
+                  @foreach($gallery as $galleryItem)
+                  <div class="col-md-3 col-sm-6">
+                     <div class="gallery_img">
+                        <figure>
+                           <img src="{{ asset('gallery/' . $galleryItem->image) }}" alt="Gallery image" />
+                        </figure>
+                     </div>
                   </div>
+                  @endforeach
+               @elseif($room->isNotEmpty())
+                  @foreach($room as $roomItem)
+                  <div class="col-md-3 col-sm-6">
+                     <div class="gallery_img">
+                        <figure>
+                           <img src="{{ asset('room_img/' . $roomItem->image) }}" alt="Room {{ $roomItem->room_number ?? 'image' }}" />
+                        </figure>
+                     </div>
+                  </div>
+                  @endforeach
+               @else
+               <div class="col-md-12">
+                  <div class="alert alert-info">No images available yet.</div>
                </div>
-               @endforeach
+               @endif
             </div>
          </div>
       </div>

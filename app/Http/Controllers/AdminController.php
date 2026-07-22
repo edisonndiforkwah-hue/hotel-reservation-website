@@ -219,13 +219,17 @@ class AdminController extends Controller
         $data = new gallery;
         $image = $request->file('image');
 
-        if ($image)
-        {
-            $imagename=time().'.'.$image->getClientOriginalExtension();
-            $image->move('gallery',$imagename);
+        if ($image) {
+            $imagename = time() . '.' . $image->getClientOriginalExtension();
+            $destinationPath = public_path('gallery');
+
+            if (!File::exists($destinationPath)) {
+                File::makeDirectory($destinationPath, 0755, true);
+            }
+
+            $image->move($destinationPath, $imagename);
             $data->image = $imagename;
             $data->save();
-            return redirect()->back();
         }
 
         return redirect()->back();
